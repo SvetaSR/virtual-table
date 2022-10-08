@@ -36,3 +36,108 @@
     transform: rotate(360deg);
   }
 }
+
+html {
+  font-family: sans-serif;
+  font-size: 14px;
+  overflow: hidden;
+  height: 100%;
+}
+
+body {
+  height: 100%;
+}
+
+.List {
+  border: 1px solid #e6e4dc;
+  max-width: 100%;
+}
+
+.ListItemEven,
+.ListItemOdd {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ListItemEven {
+  background-color: #e6e4dc;
+}
+
+button {
+  border: 1px solid gray;
+}
+
+.App {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.header {
+  height: 300px;
+  background: #61dafb;
+  flex-shrink: 0;
+}
+
+.container {
+  overflow: auto;
+  position: relative;
+}
+
+.section {
+  border: 2px solid red;
+}
+
+#root, .App, .container {
+  height: 100%;
+}
+
+/* DivTable.com */
+.divTable{
+	display: table;
+	width: 100%;
+}
+.divTableRow {
+	display: table-row;
+}
+.divTableHeading {
+	background-color: #EEE;
+	display: table-header-group;
+}
+.divTableCell, .divTableHead {
+	border: 1px solid #999999;
+	display: table-cell;
+  height: 28px;
+
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
+}
+.divTableHeading {
+	background-color: #EEE;
+	display: table-header-group;
+	font-weight: bold;
+}
+.divTableFoot {
+	background-color: #EEE;
+	display: table-footer-group;
+	font-weight: bold;
+}
+.divTableBody {
+	display: table-row-group;
+}
+
+.divTableStickyHeader{
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background-color: #999999;
+}
+
+.cellContent {
+  height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
