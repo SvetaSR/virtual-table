@@ -5,16 +5,7 @@ import isInteger from './isInteger';
 import isRangeVisible from './isRangeVisible';
 import scanForUnloadedRanges from './scanForUnloadedRanges';
 
-import type { Ranges } from './types';
-
-type onItemsRenderedParams = {
-  visibleStartIndex: number,
-  visibleStopIndex: number,
-};
-type onItemsRendered = (params: onItemsRenderedParams) => void;
-type setRef = (ref: any) => void;
-
-export type Props = {|
+/* export type Props = {|
   // Render prop.
   children: ({ onItemsRendered: onItemsRendered, ref: setRef }) => React$Node,
 
@@ -38,15 +29,15 @@ export type Props = {|
   // Threshold at which to pre-fetch data; defaults to 15.
   // A threshold of 15 means that data will start loading when a user scrolls within 15 rows.
   threshold?: number,
-|};
+|}; */
 
-export default class InfiniteLoader extends PureComponent<Props> {
-  _lastRenderedStartIndex: number = -1;
-  _lastRenderedStopIndex: number = -1;
-  _listRef: any;
-  _memoizedUnloadedRanges: Ranges = [];
+export default class InfiniteLoader extends PureComponent {
+  _lastRenderedStartIndex = -1;
+  _lastRenderedStopIndex = -1;
+  _listRef;
+  _memoizedUnloadedRanges = [];
 
-  resetloadMoreItemsCache(autoReload: boolean = false) {
+  resetloadMoreItemsCache(autoReload = false) {
     this._memoizedUnloadedRanges = [];
 
     if (autoReload) {
@@ -76,10 +67,10 @@ export default class InfiniteLoader extends PureComponent<Props> {
     });
   }
 
-  _onItemsRendered: onItemsRendered = ({
+  _onItemsRendered = ({
     visibleStartIndex,
     visibleStopIndex,
-  }: onItemsRenderedParams) => {
+  }) => {
     if (process.env.NODE_ENV !== 'production') {
       if (!isInteger(visibleStartIndex) || !isInteger(visibleStopIndex)) {
         console.warn(
@@ -100,11 +91,11 @@ export default class InfiniteLoader extends PureComponent<Props> {
     this._ensureRowsLoaded(visibleStartIndex, visibleStopIndex);
   };
 
-  _setRef: setRef = (listRef: any) => {
+  _setRef = (listRef) => {
     this._listRef = listRef;
   };
 
-  _ensureRowsLoaded(startIndex: number, stopIndex: number) {
+  _ensureRowsLoaded(startIndex, stopIndex) {
     const {
       isItemLoaded,
       itemCount,
@@ -133,7 +124,7 @@ export default class InfiniteLoader extends PureComponent<Props> {
     }
   }
 
-  _loadUnloadedRanges(unloadedRanges: Ranges) {
+  _loadUnloadedRanges(unloadedRanges) {
     // loadMoreRows was renamed to loadMoreItems in v1.0.3; will be removed in v2.0
     const loadMoreItems = this.props.loadMoreItems || this.props.loadMoreRows;
 

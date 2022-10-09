@@ -1,7 +1,5 @@
-// @flow
-
-export default function isInteger(value: number): boolean {
+export default function isInteger(value) {
   return (
-    typeof value === 'number' && isFinite(value) && Math.floor(value) === value
+    typeof value === "number" && isFinite(value) && Math.floor(value) === value
   );
 }

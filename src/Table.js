@@ -1,4 +1,4 @@
-import React, { Fragment, useCallback, useEffect } from "react";
+import React, { useCallback, useRef } from "react";
 
 import {
   flexRender,
@@ -6,12 +6,13 @@ import {
   getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table";
-import { makeData } from "./makeData";
 import { useVirtualizer, defaultRangeExtractor } from "@tanstack/react-virtual";
+import { useInfiniteLoader } from "./InfiniteLoader/InfiniteLoader.hook";
+import { makeData } from "./makeData";
 
 export const Table = () => {
   const [sorting, setSorting] = React.useState([]);
-  const [sorting2, setSorting2] = React.useState([]);
+  const ref = useRef(null);
 
   const columns = React.useMemo(
     () => [
@@ -58,29 +59,7 @@ export const Table = () => {
     []
   );
 
-  const columns2 = React.useMemo(
-    () => [
-      {
-        accessorKey: "id",
-        header: "ID",
-        size: 60,
-      },
-      {
-        accessorKey: "firstName",
-        cell: (info) => info.getValue(),
-      },
-      {
-        accessorFn: (row) => row.lastName,
-        id: "lastName",
-        cell: (info) => info.getValue(),
-        header: () => <span>Last Name</span>,
-      },
-    ],
-    []
-  );
-
   const [data, setData] = React.useState(() => makeData(100));
-  const [data2, setData2] = React.useState(() => makeData(50));
 
   const table = useReactTable({
     data,
@@ -94,57 +73,44 @@ export const Table = () => {
     debugTable: true,
   });
 
-  const table2 = useReactTable({
-    data: data2,
-    columns: columns2,
-    state: {
-      sorting: sorting2,
-    },
-    onSortingChange: setSorting2,
-    getCoreRowModel: getCoreRowModel(),
-    getSortedRowModel: getSortedRowModel(),
-    debugTable: true,
-  });
-
-  const tableContainerRef = React.useRef(null);
-
-  const activeStickyIndexRef = React.useRef([0]);
-  const stickyIndexes = React.useMemo(() => {
-    return [0, 101];
-  }, []);
-
-  const isSticky = (index) => stickyIndexes.includes(index);
-  const isActiveSticky = (index) => activeStickyIndexRef.current === index;
-
-  const isA = React.useRef(false);
+  const loadMoreItems = async (start, end) => {
+    console.log({ start, end });
+    return new Promise((resolve, reject) => {
+      setData((prevData) => [...prevData, ...makeData(10)]);
+      resolve();
+    });
+  };
 
   const { rows } = table.getRowModel();
-  const { rows: rows2 } = table2.getRowModel();
 
-  const t = [
-    ...rows.map((row) => ({
-      table,
-      row,
-    })),
-    ...rows2.map((row) => ({
-      table: table2,
-      row,
-    })),
-  ];
+  const isItemLoaded = (index) => {
+    console.log({index})
+    return rows?.[index];
+  };
+
+  const { onItemsRendered } = useInfiniteLoader({
+    ref,
+    isItemLoaded,
+    loadMoreItems,
+    itemCount: 1000,
+  });
 
   const rowVirtualizer = useVirtualizer({
-    getScrollElement: () => tableContainerRef.current,
-    count: t.length,
+    getScrollElement: () => ref.current,
+    count: 1000,
     estimateSize: () => 30,
     overscan: 10,
+    onChange: (instnace) => {
+      const { range } = instnace;
+      const { startIndex, endIndex } = range;
+      onItemsRendered({ visibleStartIndex: startIndex, visibleStopIndex: endIndex });
+    }
   });
   const { getVirtualItems: getVirtualRows, getTotalSize } = rowVirtualizer;
 
   const virtualRows = getVirtualRows();
 
   const paddingTop = virtualRows.length > 0 ? virtualRows?.[0]?.start || 0 : 0;
-  const paddingTop2 =
-    virtualRows.length > 0 ? virtualRows?.[101]?.start || 0 : 0;
   let paddingBottom =
     virtualRows.length > 0
       ? getTotalSize() - (virtualRows?.[virtualRows.length - 1]?.end || 0)
@@ -152,14 +118,17 @@ export const Table = () => {
 
   const onScroll = useCallback((el) => {
     const { scrollHeight, scrollTop, clientHeight } = el;
-    console.log("here",scrollHeight, scrollTop, clientHeight);
+    //console.log("here",scrollHeight, scrollTop, clientHeight);
     if (scrollHeight - scrollTop - clientHeight < 637) {
-        console.log("really here");
+      //console.log("really here");
     }
-  }, [])
+  }, []);
 
   return (
-    <div ref={tableContainerRef} className="container" onScroll={e => onScroll(e.target)}>
+    <div
+      ref={ref}
+      className="container"
+    >
       <div className="divTable">
         {table.getHeaderGroups().map((headerGroup) => (
           <div
@@ -215,117 +184,35 @@ export const Table = () => {
               />
             </div>
           )}
-          {virtualRows
-            .filter((virtualRow) => virtualRow.index < 100)
-            .map((virtualRow) => {
-              const data = t[virtualRow.index];
-              const row = data.row;
-              return (
-                <div className="divTableRow" key={row.id}>
-                  {row.getVisibleCells().map((cell) => {
-                    return (
-                      <div className="divTableCell" key={cell.id}>
-                        <div className="cellContent">
-                          {flexRender(
-                            cell.column.columnDef.cell,
-                            cell.getContext()
-                          )}
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              );
-            })}
-        </div>
-      </div>
-      <div
-        style={{
-          zIndex: 1,
-          background: "#fff",
-          top: 0,
-          left: 0,
-          width: "100%",
-          height: "100px",
-        }}
-      ></div>
-      <div className="divTable">
-        {table2.getHeaderGroups().map((headerGroup) => (
-          <div
-            key="header2"
-            className="divTableRow"
-            style={{
-              zIndex: 1,
-              background: "#ccc",
-              position: "sticky",
-              top: 0,
-              left: 0,
-              width: "100%",
-            }}
-          >
-            {headerGroup.headers.map((header) => {
+          {virtualRows.map((virtualRow) => {
+            const row = rows[virtualRow.index];
+            if (!row) {
               return (
                 <div
-                  className="divTableCell"
-                  key={header.id}
-                  colSpan={header.colSpan}
-                  style={{ width: header.getSize() }}
+                  className="divTableRow"
+                  key={`loading-${virtualRow.index}`}
                 >
-                  {header.isPlaceholder ? null : (
-                    <div
-                      {...{
-                        className: header.column.getCanSort()
-                          ? "cursor-pointer select-none"
-                          : "",
-                        onClick: header.column.getToggleSortingHandler(),
-                      }}
-                    >
-                      {flexRender(
-                        header.column.columnDef.header,
-                        header.getContext()
-                      )}
-                      {{
-                        asc: " 🔼",
-                        desc: " 🔽",
-                      }[header.column.getIsSorted()] ?? null}
-                    </div>
-                  )}
+                  <div className="divTableCell">Loading...</div>
                 </div>
               );
-            })}
-          </div>
-        ))}
-        <div className="divTableBody">
-          {paddingTop2 > 0 && (
-            <div className="divTableRow">
-              <div
-                className="divTableCell"
-                style={{ height: `${paddingTop2}px` }}
-              />
-            </div>
-          )}
-          {virtualRows
-            .filter((virtualRow) => virtualRow.index >= 100)
-            .map((virtualRow) => {
-              const data = t[virtualRow.index];
-              const row = data.row;
-              return (
-                <div className="divTableRow" key={row.id}>
-                  {row.getVisibleCells().map((cell) => {
-                    return (
-                      <div className="divTableCell" key={cell.id}>
-                        <div className="cellContent">
-                          {flexRender(
-                            cell.column.columnDef.cell,
-                            cell.getContext()
-                          )}
-                        </div>
+            }
+            return (
+              <div className="divTableRow" key={row.id}>
+                {row.getVisibleCells().map((cell) => {
+                  return (
+                    <div className="divTableCell" key={cell.id}>
+                      <div className="cellContent">
+                        {flexRender(
+                          cell.column.columnDef.cell,
+                          cell.getContext()
+                        )}
                       </div>
-                    );
-                  })}
-                </div>
-              );
-            })}
+                    </div>
+                  );
+                })}
+              </div>
+            );
+          })}
         </div>
       </div>
       {paddingBottom > 0 && <div style={{ height: `${paddingBottom}px` }} />}

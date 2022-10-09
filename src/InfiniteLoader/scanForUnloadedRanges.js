@@ -1,21 +1,13 @@
 // @flow
 
-import type { Ranges } from './types';
-
 export default function scanForUnloadedRanges({
   isItemLoaded,
   itemCount,
   minimumBatchSize,
   startIndex,
   stopIndex,
-}: {
-  isItemLoaded: (index: number) => boolean,
-  itemCount: number,
-  minimumBatchSize: number,
-  startIndex: number,
-  stopIndex: number,
-}): Ranges {
-  const unloadedRanges: Ranges = [];
+}) {
+  const unloadedRanges = [];
 
   let rangeStartIndex = null;
   let rangeStopIndex = null;
@@ -29,10 +21,7 @@ export default function scanForUnloadedRanges({
         rangeStartIndex = index;
       }
     } else if (rangeStopIndex !== null) {
-      unloadedRanges.push(
-        ((rangeStartIndex: any): number),
-        ((rangeStopIndex: any): number)
-      );
+      unloadedRanges.push(rangeStartIndex, rangeStopIndex);
 
       rangeStartIndex = rangeStopIndex = null;
     }
@@ -54,10 +43,7 @@ export default function scanForUnloadedRanges({
       }
     }
 
-    unloadedRanges.push(
-      ((rangeStartIndex: any): number),
-      ((rangeStopIndex: any): number)
-    );
+    unloadedRanges.push(rangeStartIndex, rangeStopIndex);
   }
 
   // Check to see if our first range ended prematurely.
