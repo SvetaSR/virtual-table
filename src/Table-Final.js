@@ -79,8 +79,8 @@ export const Table = () => {
     []
   );
 
-  const [data, setData] = React.useState(() => makeData(100));
-  const [data2, setData2] = React.useState(() => makeData(50));
+  const [data, setData] = React.useState(() => makeData(10));
+  const [data2, setData2] = React.useState(() => makeData(500));
 
   const table = useReactTable({
     data,
@@ -150,6 +150,8 @@ export const Table = () => {
       ? getTotalSize() - (virtualRows?.[virtualRows.length - 1]?.end || 0)
       : 0;
 
+      console.log(virtualRows?.[101]?.start);
+
   const onScroll = useCallback((el) => {
     const { scrollHeight, scrollTop, clientHeight } = el;
     console.log("here",scrollHeight, scrollTop, clientHeight);
@@ -160,6 +162,14 @@ export const Table = () => {
 
   return (
     <div ref={tableContainerRef} className="container" onScroll={e => onScroll(e.target)}>
+                {paddingTop > 0 && (
+            <div className="divTableRow">
+              <div
+                className="divTableCell"
+                style={{ height: `${paddingTop}px` }}
+              />
+            </div>
+          )}
       <div className="divTable">
         {table.getHeaderGroups().map((headerGroup) => (
           <div
@@ -207,16 +217,8 @@ export const Table = () => {
           </div>
         ))}
         <div className="divTableBody">
-          {paddingTop > 0 && (
-            <div className="divTableRow">
-              <div
-                className="divTableCell"
-                style={{ height: `${paddingTop}px` }}
-              />
-            </div>
-          )}
           {virtualRows
-            .filter((virtualRow) => virtualRow.index < 100)
+            .filter((virtualRow) => virtualRow.index < 10)
             .map((virtualRow) => {
               const data = t[virtualRow.index];
               const row = data.row;
@@ -305,7 +307,7 @@ export const Table = () => {
             </div>
           )}
           {virtualRows
-            .filter((virtualRow) => virtualRow.index >= 100)
+            .filter((virtualRow) => virtualRow.index >= 10)
             .map((virtualRow) => {
               const data = t[virtualRow.index];
               const row = data.row;

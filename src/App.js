@@ -1,6 +1,6 @@
 import "./App.css";
 import { Section } from "./Section";
-import { Table } from "./Table";
+import { Table } from "./Table-Final";
 import { Temp } from "./Temp";
 import { TableVirtualized } from "./TableVirtualized";
 
